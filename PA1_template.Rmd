@@ -5,6 +5,15 @@ output:
     keep_md: true
 ---
 
+# Reproducable Research Week 2 Assignment
+### By Joe M
+
+Note: Code chunks are set to show by default using: opts_chunk$set(echo=TRUE)
+```{r set_Options,echo = FASLE}
+  ## Set the behaviors of the R chucks to always show by default
+  opts_chunk$set(echo=TRUE)
+```
+
 
 ## Loading and preprocessing the data
 
