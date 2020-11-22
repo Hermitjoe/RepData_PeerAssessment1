@@ -4,62 +4,139 @@ output:
   html_document:
     keep_md: true
 ---
-
-# Reproducable Research Week 2 Assignment
 ### By Joe M
 
-Note: Code chunks are set to show by default using: opts_chunk$set(echo=TRUE)
+Note: Code chunks are set to show by default using: knitr::opts_chunk$set(echo = TRUE)
 ```{r set_Options,echo = FALSE}
   ## Set the behaviors of the R chucks to always show by default
-  opts_chunk$set(echo=TRUE)
+  knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## To make sure the code is reproducable first we will verify the enviroment
+## Check enviroment to make sure this is reproducable
+Check to make sure the system is set up to look at the files the same way mine were when creating this document
+```{r set_Packages}
+## Code from Sean Murphy on this post: https://stackoverflow.com/questions/9341635/check-for-installed-packages-before-running-install-packages
 
-Note: If this code is ran again, it is expected that the code is being ran from the working directory.
+packages <- c("lubridate","ggplot2","tidyverse")                                  ## LIst of packages needed to run this coed
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {              ## Check if its installed
+  install.packages(setdiff(packages, rownames(installed.packages())))             ## If it is not, install it  
+  
+  ## Load the necessary libraries
+  library(lubridate)                                                              ## Time manipulations
+  library(ggplot2)                                                                ## Allow GG Plot functions
+}
+```
+
+Next check the file structure
+
+Note: If this code is ran again, Since getWD is used here, it is expected that this code is being ran in the working directory.
 ```{r set_Enviroment}
-## Variables for this code - Since getWD is used here, it is expected that this code is being ran in the working directory
+## Variables for this code 
 wd <- getwd()                                                                     ## Set Working location 
 class_ZIP <- paste(wd, "activity.zip", sep = '/')                                 ## Create Zip File string
 class_URL <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip" # Class zip location
 class_CSV <- paste(wd, "activity.csv", sep = '/')                                 ## Create CSV File string
 
 ## Zip check - get if not there
-if (!file.exists(class_ZIP)) {download.file(class_URL, class_ZIP)}                 ## If file does not exist, retrieve it
+if (!file.exists(class_ZIP)) {download.file(class_URL, class_ZIP)}                ## If file does not exist, retrieve it
 
 ## CSV file check - Unzip crom class zip if not there
 if (!file.exists(class_CSV)) {unzip(class_ZIP, overwrite = TRUE)}                 ## If file does not exist, retrieve it
 
-'''
+```
 
 ## Loading and preprocessing the data
-### make sure the zip file exists -- If not retreive a new copy form the class page
-wd <- getwd()                                                                     ## First get working Directory
 
+Pull the data into a data variable for manipulation
+```{r get_ActivityData}
+csv_AD <- read.csv('activity.csv')                                                ## pull data from file for use 
+```
 
-if !file.exists
+## With the data in a usable format by R, we can get some data on it 
+### Before using it, lets look at the data fast to see what is looks like
+```{r get_DataReveiw}
+str(csv_AD)
+```
 
+Note the existing data, NAs that will need to be dealt with, and the date does not have time (as expected) 
+the time interval will need to be incorporated...
 
-<a href="https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip" rel="nofollow">Activity monitoring data</a>
+```{r get_DataSummary}
+summary(csv_AD)
+```
+OK, notice Date is a string (character), and the time is maxing out at 2355. 
+Knowing this we should be able to perform the tasks for this assignment
 
+First lets merge date and time for easier plotting/using
+```{r get_Interval}
+#csv_AD$interval <- strptime(gsub("([0-9]{1,2})([0-9]{2})", "\\1:\\2", csv_AD$interval), format='%H:%M')
+```
 
+## Some basic questions can be answered
 
+### What is mean total number of steps taken per day?
 
+```{r get_AvgStepsADay}
+stepsBD <- tapply(csv_AD$steps, csv_AD$date, sum, na.rm=TRUE)                    # Get Steps - Use Tapply as its over the set
 
+plot(stepsBD, xlab='Count of Occurances', ylab='Steps Per Day', main = "Count of steps per day") ## Set plot to show data
 
+## For last part of the question
+meaStepsDay <- mean(stepsBD)                                                     ## Get the overall mean                          
+medStepsDay <- median(stepsBD)                                                   ## Get the overall median
+```
 
-
-
-## What is mean total number of steps taken per day?
-
+The last part of this question is to get the **mean** (`r meaStepsDay`) and the **Median** (`r medStepsDay`).
 
 
 ## What is the average daily activity pattern?
 
+```{r get_AvgDailyPattern}
+ast <- aggregate(x=list(meanSteps=csv_AD$steps), by=list(interval=csv_AD$interval), FUN=mean, na.rm=TRUE) ## NAs managed here
+#### type = "l"
+plot(data=ast, x=ast$interval, y=ast$meanSteps, type = "l", axes=FALSE, ann=FALSE)
+    title(xlab="5Min Interval", ylab="Ave # Steps") 
+   box()
+
+## also grab the info for the final part of this question
+mS <- which.max(ast$meanSteps)                                                    ## Max steps in set
+ms_Time <-  gsub("([0-9]{1,2})([0-9]{2})", "\\1:\\2", ast[mS,'interval'])         ## Find when it happened
+``` 
+
+The **most steps** (`r mS`) occurred at **`r ms_Time`**.
+
 
 
 ## Imputing missing values
+This section will look at the NAs we saw above. 
+
+```{r st}
+num_NAs <- length(which(is.na(csv_AD$steps)))                                     ## Pull number of missing values
+
+csv_HAD <- csv_AD                                                                 ## Place existing data into a holder 
+mn_Steps = mean(csv_AD$steps, na.rm = TRUE)                                       ## Pull the mean number of steps  
+csv_AD$steps[is.na(csv_AD$steps)] <- mn_Steps                                     ## Replace null with the mean steps
+
+num_NAsA <- length(which(is.na(csv_AD$steps)))                                    ## Pull number of missing values again to compare
+
+## This was done to reuse the above block to look at he steps and get the Median and Mean
+
+```
 
 
+```{r get_AvgStepsADay}
+```
 
-## Are there differences in activity patterns between weekdays and weekends?
+Originally, there were `r num_NAs` occurances of NA, after the update it changed to `r num_NAsA`.  
+The last part of this question is to get the **mean** (`r meaStepsDay`) and the **Median** (`r medStepsDay`).
+
+## **Lastly**, are there differences in activity patterns between weekdays and weekends?
+```{r set_WeekDayEnd}
+library(ggplot2)                                                                 ## Have to call library in the block to work
+csv_AD$dateType <-  ifelse(as.POSIXlt(csv_AD$date)$wday %in% c(0,6), 'weekend', 'weekday')   ## New variable
+
+ggplot(csv_AD, aes(interval, steps)) + geom_line() + facet_grid(dateType ~ .) 
+##  xlab("5Min Interval") + ylab("Ave # Steps")
+```
+
+
