@@ -9,13 +9,44 @@ output:
 ### By Joe M
 
 Note: Code chunks are set to show by default using: opts_chunk$set(echo=TRUE)
-```{r set_Options,echo = FASLE}
+```{r set_Options,echo = FALSE}
   ## Set the behaviors of the R chucks to always show by default
   opts_chunk$set(echo=TRUE)
 ```
 
+## To make sure the code is reproducable first we will verify the enviroment
+
+Note: If this code is ran again, it is expected that the code is being ran from the working directory.
+```{r set_Enviroment}
+## Variables for this code - Since getWD is used here, it is expected that this code is being ran in the working directory
+wd <- getwd()                                                                     ## Set Working location 
+class_ZIP <- paste(wd, "activity.zip", sep = '/')                                 ## Create Zip File string
+class_URL <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip" # Class zip location
+class_CSV <- paste(wd, "activity.csv", sep = '/')                                 ## Create CSV File string
+
+## Zip check - get if not there
+if (!file.exists(class_ZIP)) {download.file(class_URL, class_ZIP)}                 ## If file does not exist, retrieve it
+
+## CSV file check - Unzip crom class zip if not there
+if (!file.exists(class_CSV)) {unzip(class_ZIP, overwrite = TRUE)}                 ## If file does not exist, retrieve it
+
+'''
 
 ## Loading and preprocessing the data
+### make sure the zip file exists -- If not retreive a new copy form the class page
+wd <- getwd()                                                                     ## First get working Directory
+
+
+if !file.exists
+
+
+<a href="https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip" rel="nofollow">Activity monitoring data</a>
+
+
+
+
+
+
 
 
 
